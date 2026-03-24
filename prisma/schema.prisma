@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Page {
+  id           String   @id @default(uuid())
+  url          String   @unique
+  title        String?
+  content      String?  @db.Text
+  crawledAt    DateTime @default(now())
+  
+  linksOut     Link[]   @relation("SourcePage")
+  
+  @@index([url])
+}
+
+model Link {
+  id           String   @id @default(uuid())
+  sourceId     String
+  targetUrl    String
+  
+  source       Page     @relation("SourcePage", fields: [sourceId], references: [id], onDelete: Cascade)
+  
+  @@index([sourceId])
+  @@index([targetUrl])
+}
