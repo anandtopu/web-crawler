@@ -29,3 +29,7 @@ export async function markUrlSeen(url: string): Promise<void> {
 export async function getSeenCount(): Promise<number> {
   return await redisConnection.scard('crawler:seen_urls');
 }
+
+export async function clearSeenUrls(): Promise<void> {
+  await redisConnection.del('crawler:seen_urls');
+}

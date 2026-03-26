@@ -15,6 +15,7 @@ export const queueEvents = new QueueEvents(QUEUE_NAME, {
 });
 
 let worker: Worker | null = null;
+let isCrawlingStopped = false;
 
 export function initWorker() {
   const concurrency = parseInt(process.env.CONCURRENCY || '5', 10);
@@ -47,6 +48,10 @@ export function initWorker() {
 }
 
 export async function enqueueUrl(url: string, depth: number = 0) {
+  if (isCrawlingStopped) {
+    return; // Do not enqueue if crawling is stopped
+  }
+
   await crawlerQueue.add(
     'crawl',
     { url, depth },
@@ -60,6 +65,17 @@ export async function enqueueUrl(url: string, depth: number = 0) {
       },
     }
   );
+}
+
+export async function clearQueue() {
+  isCrawlingStopped = true;
+  await crawlerQueue.pause();
+  await crawlerQueue.drain(true); // removes waiting and delayed jobs
+}
+
+export async function resumeQueue() {
+  isCrawlingStopped = false;
+  await crawlerQueue.resume();
 }
 
 export async function shutdownQueue() {

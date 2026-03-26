@@ -42,3 +42,24 @@ export async function getStats() {
   const linkCount = await prisma.link.count();
   return { pageCount, linkCount };
 }
+
+export async function clearDatabase() {
+  await prisma.link.deleteMany({});
+  await prisma.page.deleteMany({});
+}
+
+export async function getRecentCrawlHistory(limit = 50) {
+  return await prisma.page.findMany({
+    orderBy: { crawledAt: 'desc' },
+    take: limit,
+    select: {
+      id: true,
+      url: true,
+      title: true,
+      crawledAt: true,
+      _count: {
+        select: { linksOut: true },
+      },
+    },
+  });
+}
